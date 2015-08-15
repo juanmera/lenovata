@@ -54,6 +54,6 @@ func (m *Hash) SetDataSize(dataSize uint) {
     m.data[m.blocks * BlockSize - 1] = byte(dataSize)
 }
 
-func sha256RorxX8ms(input_data unsafe.Pointer, digest unsafe.Pointer, num_blks uint64);
+func Sha256RorxX8ms(data unsafe.Pointer, digest unsafe.Pointer, blocks uint64);
 
 
