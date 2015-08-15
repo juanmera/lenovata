@@ -1136,9 +1136,9 @@ STACK_SIZE	equ _RSP       + _RSP_SIZE
 ;; arg 2 : pointer to digest
 ;; arg 3 : Num blocks
 section .text
-global github_com_juanmera_lenovata_intelsha.sha256RorxX8ms
+global github_com_juanmera_lenovata_intelsha.Sha256RorxX8ms
 align 32
-github_com_juanmera_lenovata_intelsha.sha256RorxX8ms:
+github_com_juanmera_lenovata_intelsha.Sha256RorxX8ms:
 	push	rbx
 %ifndef LINUX
 	push	rsi
