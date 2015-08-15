@@ -1,23 +1,63 @@
 package lenovo
 
+import (
+	"github.com/juanmera/lenovata/intelsha"
+	"unsafe"
+)
+
 const ScanCodeIndex = "##1234567890####qwertyuiop####asdfghjkl;####zxcvbnm###### "
 var Charset string
-
-type Sha256Digester interface {
-    Digest([]byte) [32]byte
-}
 
 type Range struct {
     Start byte
     End byte
 }
 
-func Hash(hi, ho Sha256Digester, sndPwd, pwd []byte) [32]byte {
-    digest := hi.Digest(pwd)
-    copy(sndPwd, digest[:12])
-    return ho.Digest(sndPwd)
+type Hash struct {
+    dataA [128]byte
+    dataB [128]byte
+    digestA [128]byte
+    Digest [32]byte
+    digestAS []byte
+    digestBS []byte
+    dataAS []byte
+    dataBS []byte
+    salt []byte
+    pDataA unsafe.Pointer
+    pDataB unsafe.Pointer
+    pDigestA unsafe.Pointer
+    pDigestB unsafe.Pointer
 }
 
+func New(salt []byte) *Hash {
+	m := &Hash{
+		salt: salt,
+	}
+	m.digestAS = m.digestA[:]
+	m.digestBS = m.Digest[:]
+	m.dataAS = m.dataA[:]
+	m.dataBS = m.dataB[:]
+	m.pDataA = unsafe.Pointer(&m.dataA)
+	m.pDataB = unsafe.Pointer(&m.dataA)
+	m.pDigestA = unsafe.Pointer(&m.digestA)
+	m.pDigestB = unsafe.Pointer(&m.Digest)
+
+	m.dataA[64] = 0x80
+	m.dataA[126] = 0x02
+	m.digestA[72] = 0x80
+	m.digestA[126] = 0x02
+	m.digestA[127] = 0x40
+	return m
+}
+
+func (m *Hash) Hash(pwd []byte) {
+	copy(m.digestAS, intelsha.InitialDigest)
+	copy(m.digestBS, intelsha.InitialDigest)
+	copy(m.dataAS, pwd)
+    intelsha.Sha256RorxX8ms(m.pDataA, m.pDigestA, 2)
+    copy(m.digestAS[12:], m.salt)
+    intelsha.Sha256RorxX8ms(m.pDigestA, m.pDigestB, 2)
+}
 
 func DecodePassword(pwd []byte) (decoded string) {
     for _, i := range pwd {
