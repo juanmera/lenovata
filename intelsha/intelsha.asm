@@ -1421,6 +1421,30 @@ done_hash:
 %endif
 
 	mov	rsp, [rsp + _RSP]
+	mov	a,[4*0 + CTX]
+	mov	b,[4*1 + CTX]
+	mov	c,[4*2 + CTX]
+	mov	d,[4*3 + CTX]
+	mov	e,[4*4 + CTX]
+	mov	f,[4*5 + CTX]
+	mov	g,[4*6 + CTX]
+	mov	h,[4*7 + CTX]
+	bswap a
+	bswap b
+	bswap c
+	bswap d
+	bswap e
+	bswap f
+	bswap g
+	bswap h
+	mov	[4*0 + CTX],a
+	mov	[4*1 + CTX],b
+	mov	[4*2 + CTX],c
+	mov	[4*3 + CTX],d
+	mov	[4*4 + CTX],e
+	mov	[4*5 + CTX],f
+	mov	[4*6 + CTX],g
+	mov	[4*7 + CTX],h
 
 	pop	r15
 	pop	r14
