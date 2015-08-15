@@ -3,7 +3,6 @@ package main
 import (
     "github.com/juanmera/gordlist"
     "code.google.com/p/gcfg"
-    "github.com/juanmera/lenovata/intelsha"
     "github.com/juanmera/lenovata/lenovo"
     "fmt"
     "os"
@@ -83,14 +82,10 @@ func showWordCount(g *gordlist.Generator) {
 }
 
 func testLenovoPassword(targetHash [32]byte, targetModelSerialHex []byte, in chan []byte) {
-    var targetModelSerial [72]byte
-    hex.Decode(targetModelSerial[12:], targetModelSerialHex)
-    hi := intelsha.New()
-    ho := intelsha.New()
-    hi.SetDataSize(64)
-    ho.SetDataSize(72)
+	h := lenovo.New(targetModelSerialHex)
     for pwd := range in {
-        if lenovo.Hash(hi, ho, targetModelSerial[:], pwd) == targetHash {
+    	h.Hash(pwd)
+        if h.Digest == targetHash {
             fmt.Printf("FOUND: (% x) %s\n", pwd, lenovo.DecodePassword(pwd))
             os.Exit(0)
         }
