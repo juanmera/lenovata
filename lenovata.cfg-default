@@ -1,6 +1,7 @@
 [Performance]
 Processes = 5
 Routines = 8
+WordBuffer = 1000000
 
 [Bruteforce]
 MinLen = 1
@@ -9,3 +10,8 @@ MaxLen = 8
 [Target]
 HashHex = a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8a8
 ModelSerialHex = 202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020202020
+
+[Session]
+FileName = lenovata.sess
+SaveTimeout = 60
+
