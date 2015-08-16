@@ -1,5 +1,6 @@
 *.sublime-project
 *.sublime-workspace
 lenovata.cfg
+lenovata.sess
 lenovata
 intelsha/intelsha.o
