@@ -19,21 +19,20 @@
 #define sigma0(x) ((ror(x,7))  ^ (ror(x,18)) ^(x>>3))
 #define sigma1(x) ((ror(x,17)) ^ (ror(x,19)) ^(x>>10))
 
-#define THREADS 512
-#define BLOCKS 2048*6 /* it must be something divisible by 3 */
-#define KEYS_PER_CRYPT THREADS*BLOCKS
-typedef struct{
+#define STREAMS 16 / 4
+#define THREADS 256 / 4
+#define BLOCKS 1024 * 8 * STREAMS
+#define KEYS_PER_CRYPT THREADS * BLOCKS
+
+typedef struct {
   unsigned char v[19];
   unsigned char length;
-} sha256_password;
+} Sha256Password;
 
-typedef struct{
-  uint32_t v[8]; 				///256bits
-} sha256_hash;
+typedef union {
+    uint32_t h[8];
+    unsigned char hb[32];
+} Sha256Digest;
 
-
-#define BINARY_SIZE		32
-#define SHA_HASH		sha256_hash
-
-void gpu_rawsha256(sha256_password * i, SHA_HASH * o, int lap);
+void gpuSha256(Sha256Password * i, Sha256Digest * o);
 #endif

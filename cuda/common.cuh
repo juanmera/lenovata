@@ -8,7 +8,6 @@
 #include "cuda_runtime.h"
 
 void HandleError(cudaError_t err, const char *file, int line);
-void cuda_device_list();
 void *cuda_pageLockedMalloc(void *w,unsigned int size);
 void cuda_pageLockedFree(void *w);
 int cuda_getAsyncEngineCount();
