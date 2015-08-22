@@ -2,16 +2,13 @@
 #include <stdint.h>
 
 typedef struct {
-    union {
-        uint32_t h[8];
-        unsigned char hb[32];
-    };
+    uint32_t H[8];
 } Hash;
 
 typedef struct {
-    uint l;
-    unsigned char p[10];
+    unsigned char L;
+    unsigned char P[8];
 } Password;
 
 extern "C" void sha256Digest(Password *p, Hash *h);
-extern "C" void lenovoFind(Password *pwds, Password *pout, Hash *targetHash, unsigned char * modelSerial);
+extern "C" void gpuLenovoHash(Password *pwds, Password *pout, Hash *targetHash, const char * modelSerial, uint32_t blocks, uint32_t threads, uint32_t passwords);
