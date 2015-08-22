@@ -1,24 +1,32 @@
 package main
 
+// #include "cuda/mySha256.h"
+import "C"
 import (
     "code.google.com/p/gcfg"
+    "encoding/binary"
     "encoding/hex"
     "flag"
     "fmt"
     "github.com/juanmera/gordlist"
     "github.com/juanmera/lenovata/lenovo"
+    "github.com/juanmera/lenovata/cuda"
     "io/ioutil"
     "os"
     "runtime"
     "strconv"
     "sync"
+    "unsafe"
     "time"
 )
 
 type Config struct {
     Performance struct {
         Processes int
-        Routines int
+        CPUThreads int
+        CudaThreads int
+        GPUBlocks uint32
+        GPUThreads uint32
         WordBuffer int
     }
     Bruteforce struct {
@@ -65,11 +73,13 @@ func main() {
     gordlist.Debug = true
     gordlist.Buffer = config.Performance.WordBuffer
     runtime.GOMAXPROCS(config.Performance.Processes)
-    hex.Decode(targetHash[:], []byte(config.Target.HashHex))
     targetModelSerial, _ := hex.DecodeString(config.Target.ModelSerialHex)
+    targetHashArray := hashArrayFromHex(config.Target.HashHex)
+    hex.Decode(targetHash[:], []byte(config.Target.HashHex))
 
     fmt.Printf("LENOVATA\n")
-    fmt.Printf("PERFORMANCE Processes: %d Routines: %d\n", config.Performance.Processes, config.Performance.Routines)
+    fmt.Printf("PERFORMANCE CPU Processes: %d CPU Threads: %d Cuda Threads: %d\n", config.Performance.Processes, config.Performance.CPUThreads, config.Performance.CudaThreads)
+    fmt.Printf("PERFORMANCE GPU Blocks: %d Threads: %d\n", config.Performance.GPUBlocks, config.Performance.GPUThreads)
     fmt.Printf("BRUTEFORCE Min-Max Len: %d - %d Offset: %d\n", config.Bruteforce.MinLen, config.Bruteforce.MaxLen, offset)
     fmt.Printf("TARGET Hash: %s\n", config.Target.HashHex)
     fmt.Printf("TARGET Model & Serial: '%s'\n", targetModelSerial)
@@ -77,9 +87,16 @@ func main() {
 
     g := gordlist.New(lenovo.Charset)
     gcout := g.GenerateFrom(config.Bruteforce.MinLen, config.Bruteforce.MaxLen, offset)
-    wg.Add(config.Performance.Routines)
     go saveProgress(config.Session.FileName, config.Session.SaveTimeout, g)
-    for i := 0; i < config.Performance.Routines; i++ {
+    wg.Add(config.Performance.CPUThreads + config.Performance.CudaThreads)
+    for i := 0; i < config.Performance.CudaThreads; i++ {
+        go func() {
+            defer wg.Done()
+            cudaCall := cuda.New(targetHashArray, targetModelSerial, config.Performance.GPUBlocks, config.Performance.GPUThreads)
+            testHashCuda(gcout, cudaCall)
+        }()
+    }
+    for i := 0; i < config.Performance.CPUThreads; i++ {
         go func() {
             defer wg.Done()
             testLenovoPassword(targetHash, targetModelSerial, gcout)
@@ -98,13 +115,41 @@ func saveProgress(fileName string, timeout uint64, g *gordlist.Generator) {
     }
 }
 
+func testHashCuda(gcout chan []byte, cudaCall *cuda.Call) {
+    pwds := make([]cuda.Password, cudaCall.PasswordCount)
+    i := uint32(0)
+    for pwd := range gcout {
+        pwds[i % cudaCall.PasswordCount] = cuda.NewPassword(pwd)
+        i++
+        if (i % cudaCall.PasswordCount) == 0 {
+            cudaCall.Run(unsafe.Pointer(&pwds[0]))
+            if cudaCall.PasswordOut.L > 0 {
+                fmt.Printf("FOUND (GPU): (% x) %d\n", cudaCall.PasswordOut.P, C.int(cudaCall.PasswordOut.L))
+                ioutil.WriteFile("FOUND.txt", []byte(fmt.Sprintf("% x (%d)\n", cudaCall.PasswordOut.P, cudaCall.PasswordOut.L)), 0644)
+                os.Exit(0)
+            }
+        }
+
+    }
+}
+
+func hashArrayFromHex(hashHex string) (hash [8]uint32) {
+    for i := 0; i< 8; i++ {
+        buf, _ := hex.DecodeString(hashHex[i*8:i*8+8])
+        hash[i] = binary.BigEndian.Uint32(buf)
+    }
+    return hash
+}
+
+
 func testLenovoPassword(targetHash [32]byte, targetModelSerialHex []byte, in chan []byte) {
     h := lenovo.New(targetModelSerialHex)
     for pwd := range in {
         h.Hash(pwd)
             // FIXME: Use channels to handle success & terminate
         if h.Digest == targetHash {
-            fmt.Printf("FOUND: (% x) %s\n", pwd, lenovo.DecodePassword(pwd))
+            fmt.Printf("FOUND (CPU): (% x) %d\n", pwd, len(pwd))
+            ioutil.WriteFile("FOUND.txt", []byte(fmt.Sprintf("% x (%d)\n", pwd, len(pwd))), 0644)
             os.Exit(0)
         }
     }

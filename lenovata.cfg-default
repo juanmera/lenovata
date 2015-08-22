@@ -1,6 +1,9 @@
 [Performance]
 Processes = 5
-Routines = 8
+CPUThreads = 8
+CudaThreads = 1
+GPUBlocks = 65536
+GPUThreads = 32
 WordBuffer = 1000000
 
 [Bruteforce]
