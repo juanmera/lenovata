@@ -1,7 +1,5 @@
 package main
 
-// #include "cuda/mySha256.h"
-import "C"
 import (
     "code.google.com/p/gcfg"
     "encoding/binary"
@@ -110,8 +108,9 @@ func saveProgress(fileName string, timeout uint64, g *gordlist.Generator) {
     var progress string
     for {
         time.Sleep(time.Duration(timeout) * time.Second)
-        progress = strconv.FormatUint(g.WordCount() - uint64(gordlist.Buffer), 10)
+        progress = strconv.FormatUint(g.WordCount() - uint64(gordlist.Buffer) - uint64(10000000), 10)
         ioutil.WriteFile(fileName, []byte(progress), 0644)
+        fmt.Printf("Progress: %s\n", progress)
     }
 }
 
@@ -124,12 +123,11 @@ func testHashCuda(gcout chan []byte, cudaCall *cuda.Call) {
         if (i % cudaCall.PasswordCount) == 0 {
             cudaCall.Run(unsafe.Pointer(&pwds[0]))
             if cudaCall.PasswordOut.L > 0 {
-                fmt.Printf("FOUND (GPU): (% x) %d\n", cudaCall.PasswordOut.P, C.int(cudaCall.PasswordOut.L))
+                fmt.Printf("FOUND (GPU): (% x) %d\n", cudaCall.PasswordOut.P, cudaCall.PasswordOut.L)
                 ioutil.WriteFile("FOUND.txt", []byte(fmt.Sprintf("% x (%d)\n", cudaCall.PasswordOut.P, cudaCall.PasswordOut.L)), 0644)
                 os.Exit(0)
             }
         }
-
     }
 }
 

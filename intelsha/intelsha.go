@@ -1,5 +1,6 @@
 package intelsha
-
+// #cgo LDFLAGS: -m64 /home/odin/dev/juanmera/lenovata/intelsha/intelsha.o
+import "C"
 import (
     "unsafe"
 )

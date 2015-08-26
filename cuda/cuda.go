@@ -1,8 +1,8 @@
 package cuda
 
-// #cgo LDFLAGS:-fno-exceptions -L/opt/cuda/lib64 -L/opt/cuda/lib -lcudart -lcuda -lstdc++ /home/odin/dev/juanmera/lenovata/cuda/mySha256.o
+// #cgo LDFLAGS:-fno-exceptions -L/opt/cuda/lib64 -L/opt/cuda/lib -lcudart -lcuda -lstdc++ /home/odin/dev/juanmera/lenovata/cuda/lenovo.o
 // #cgo CFLAGS: -fno-exceptions -I/opt/cuda/include
-// #include "mySha256.h"
+// #include "lenovo.h"
 import "C"
 import (
     "unsafe"
@@ -43,7 +43,7 @@ func newHash(v [8]uint32) (h Hash) {
 }
 
 func (c *Call) Run(pwds unsafe.Pointer) {
-    C.gpuLenovoHash(
+    C.lenovo_sum(
         (*C.Password)(pwds),
         c.pout,
         c.targetHash,

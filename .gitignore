@@ -4,3 +4,5 @@ lenovata.cfg
 lenovata.sess
 lenovata
 intelsha/intelsha.o
+cuda/lenovo.o
+FOUND.txt
