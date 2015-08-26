@@ -6,3 +6,4 @@ lenovata
 intelsha/intelsha.o
 cuda/lenovo.o
 FOUND.txt
+mydata/*
